@@ -17,35 +17,22 @@ if [[ "$skip_tests" == "true" ]]; then
 fi
 
 echo "Running as user $(whoami)"
-if [[ $EUID == 0 ]]; then
-    echo "Running with root permissions"
-else
-    echo "Running WITHOUT root permissions"
-fi
-
-set -ex
-
-# Install vs code and test prereqs
-
-curl -sSLf https://update.code.visualstudio.com/latest/linux-deb-x64/stable -o vscode.deb
-apt update -y
-apt install -y ./vscode.deb
-# https://askubuntu.com/questions/482478/libasound-so-2-cannot-open-shared-object-file-no-such-file-or-directory
-apt install -y libasound2
-# xvfb is required so vs code thinks it has a display
-apt install -y xvfb
-
-# https://medium.com/@yavuz255/how-to-run-visual-studio-code-as-root-7c0d5df0e764
-udd_arg=""
-if [[ $EUID == 0 ]]; then
-    udd_arg="--user-data-dir='~/.vscode-root'"
-fi
-
-code --version $udd_arg
-code --install-extension "vscjava.vscode-java-debug" --force $udd_arg
 
 # Working directory must be dev/ (since this is where package.json is for npm test)
 cd "$(dirname $0)/../dev"
+
+# Install vs code and test prereqs
+# curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.34.0/install.sh | bash
+export NVM_DIR="$HOME/.nvm"
+[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+nvm install --lts
+nvm use --delete-prefix --lts
+
+set -ex
+
+# Compile and npm i
+npm run vscode:prepublish
+src/test/pretest.js
 
 if [[ -z $CODE_TESTS_WORKSPACE ]]; then
     export CODE_TESTS_WORKSPACE="${HOME}/codewind-workspace/"

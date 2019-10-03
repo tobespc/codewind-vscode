@@ -21,7 +21,7 @@ import ProjectType from "../project/ProjectType";
 import MCUtil from "../../MCUtil";
 import InstallerWrapper from "./InstallerWrapper";
 
-export interface IMCTemplateData {
+export interface ICWTemplateData {
     label: string;
     description: string;
     url: string;
@@ -50,15 +50,22 @@ interface INewProjectInfo {
  */
 namespace UserProjectCreator {
 
-    export async function createProject(connection: Connection, template: IMCTemplateData, projectName: string): Promise<INewProjectInfo> {
+    export async function createProject(connection: Connection, template: ICWTemplateData, projectName: string): Promise<INewProjectInfo> {
 
         // right now projects must be created under the codewind workspace so users can't choose the parentDir
         // abs path on user system under which the project will be created
         const userParentDir = connection.workspacePath;
 
-        // caller must handle errors
         const projectPath = path.join(userParentDir.fsPath, projectName);
-        const creationRes = await InstallerWrapper.createProject(projectPath, template.url);
+
+        const creationRes = await vscode.window.withProgress({
+            cancellable: false,
+            location: vscode.ProgressLocation.Notification,
+            title: `Creating ${projectName}...`,
+        }, () => {
+            return InstallerWrapper.createProject(projectPath, template.url);
+        });
+
         if (creationRes.status !== SocketEvents.STATUS_SUCCESS) {
             // failed
             const failedResult = (creationRes.result as { error: string });
@@ -75,7 +82,7 @@ namespace UserProjectCreator {
     }
 
     export async function validateAndBind(connection: Connection, pathToBindUri: vscode.Uri): Promise<INewProjectInfo | undefined> {
-        const pathToBind = MCUtil.fsPathToContainerPath(pathToBindUri);
+        const pathToBind = pathToBindUri.fsPath;
         Log.i("Binding to", pathToBind);
 
         const projectName = path.basename(pathToBind);
@@ -169,7 +176,13 @@ namespace UserProjectCreator {
 
         let projectType: string = projectTypeRes.label;
         let language: string;
-        if (projectType !== OTHER_TYPE_OPTION) {
+        // If the project type selected has a language that it always is, use that language, else have the user select it
+        const typesWithCorrespondingLanguage = ProjectType.getRecognizedInternalTypes()
+            .map((type) => type.toString())
+            // Remove generic type because it can be any language
+            .filter((type) => type !== OTHER_TYPE_OPTION);
+
+        if (typesWithCorrespondingLanguage.includes(projectType)) {
             language = projectTypeRes.language;
         }
         else {
@@ -187,7 +200,7 @@ namespace UserProjectCreator {
 
     const OTHER_LANG_BTN = "Other";
 
-    async function promptForLanguage(templates: IMCTemplateData[]): Promise<string | undefined> {
+    async function promptForLanguage(templates: ICWTemplateData[]): Promise<string | undefined> {
         Log.d("Prompting user for project language");
         let languageQpis = templates.map((template) => template.language);
         // remove duplicates
@@ -251,14 +264,16 @@ namespace UserProjectCreator {
         return selectedDirs[0];
     }
 
-    async function requestBind(connection: Connection, projectName: string, dirToBindContainerPath: string, language: string, projectType: string)
+    async function requestBind(connection: Connection, projectName: string, dirToBindFsPath: string, language: string, projectType: string)
         : Promise<void> {
+
+        const containerPath = MCUtil.fsPathToContainerPath(dirToBindFsPath);
 
         const bindReq = {
             name: projectName,
             language,
             projectType,
-            path: dirToBindContainerPath,
+            path: containerPath,
         };
 
         Log.d("Bind request", bindReq);

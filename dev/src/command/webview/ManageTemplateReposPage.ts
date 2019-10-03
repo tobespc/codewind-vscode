@@ -49,7 +49,7 @@ export default function getManageReposPage(repos: ITemplateRepo[]): string {
                 <img id="logo" alt="Codewind Logo" src="${WebviewUtil.getIcon(Resources.Icons.Logo)}"/>
                 <h1>Template Source Manager</h1>
             </div>
-            <div id="learn-more-btn" class="btn toolbar-btn" onclick="sendMsg('${ManageReposWVMessages.HELP}')">
+            <div tabindex="0" id="learn-more-btn" class="btn toolbar-btn" onclick="sendMsg('${ManageReposWVMessages.HELP}')">
                 Learn More<img alt="Learn More" src="${WebviewUtil.getIcon(Resources.Icons.Help)}"/>
             </div>
         </div>
@@ -59,10 +59,10 @@ export default function getManageReposPage(repos: ITemplateRepo[]): string {
                 Enable All<img alt="Enable All" src="${WebviewUtil.getIcon(Resources.Icons.Play)}"/>
             </div-->
             <div id="toolbar-right-buttons">
-                <div class="btn toolbar-btn" onclick="sendMsg('${ManageReposWVMessages.REFRESH}')">
+                <div tabindex="0" class="btn toolbar-btn" onclick="sendMsg('${ManageReposWVMessages.REFRESH}')">
                     Refresh<img alt="Refresh" src="${WebviewUtil.getIcon(Resources.Icons.Refresh)}"/>
                 </div>
-                <div id="add-repo-btn" class="toolbar-btn btn btn-w-background" onclick="sendMsg('${ManageReposWVMessages.ADD_NEW}')">
+                <div tabindex="0" id="add-repo-btn" class="toolbar-btn btn btn-w-background" onclick="sendMsg('${ManageReposWVMessages.ADD_NEW}')">
                     Add New<img alt="Add New" src="${WebviewUtil.getIcon(Resources.Icons.New)}"/>
                 </div>
             </div>
@@ -88,14 +88,17 @@ export default function getManageReposPage(repos: ITemplateRepo[]): string {
             const newEnablement = toggleBtn.getAttribute("${REPO_ENABLED_ATTR}") != "true";
             toggleBtn.setAttribute("${REPO_ENABLED_ATTR}", newEnablement);
 
-            let newToggleImg;
+            let newToggleImg, newToggleAlt;
             if (newEnablement) {
-                newToggleImg = "${getStatusToggleIconSrc(true)}";
+                newToggleImg = "${getStatusToggleIconSrc(true, true)}";
+                newToggleAlt = "${getStatusToggleAlt(true)}";
             }
             else {
-                newToggleImg = "${getStatusToggleIconSrc(false)}";
+                newToggleImg = "${getStatusToggleIconSrc(false, true)}";
+                newToggleAlt = "${getStatusToggleAlt(false)}";
             }
             toggleBtn.src = newToggleImg;
+            toggleBtn.alt = newToggleAlt;
 
             sendMsg("${ManageReposWVMessages.ENABLE_DISABLE}", { repos: [ getRepoEnablementObj(toggleBtn) ] });
         }
@@ -137,18 +140,17 @@ function buildTemplateTable(repos: ITemplateRepo[]): string {
     return `
     <table>
         <colgroup>
-            <col id="descr-col"/>
+            <col id="name-col"/>
             <col id="style-col"/>
-            <col id="source-col"/>
+            <col id="descr-col"/>
             <col id="status-col"/>
             <col id="delete-col"/>
         </colgroup>
         <thead>
             <tr>
-                <!--td>Repo Name</td-->
-                <td>Description</td>
+                <td>Name</td>
                 <td>Style</td>
-                <td>Link</td>
+                <td>Description</td>
                 <td>Enabled</td>
                 <td></td>        <!-- Delete buttons column -->
             </tr>
@@ -161,12 +163,12 @@ function buildTemplateTable(repos: ITemplateRepo[]): string {
 }
 
 function buildRepoRow(repo: ITemplateRepo): string {
+    const repoName = repo.name ? repo.name : "No name available";
     return `
     <tr>
-        <!--td class="name-cell">${repo.name}</td-->
-        <td class="descr-cell">${repo.description}</td>
+        <td class="name-cell"><a href="${repo.url}">${repoName}</a></td>
         <td class="style-cell">${repo.projectStyles.join(", ")}</td-->
-        <td class="source-cell"><a href="${repo.url}">Source</a></td>
+        <td class="descr-cell">${repo.description}</td>
         ${getStatusToggleTD(repo)}
         ${getDeleteBtnTD(repo)}
     </tr>
@@ -175,13 +177,23 @@ function buildRepoRow(repo: ITemplateRepo): string {
 
 function getStatusToggleTD(repo: ITemplateRepo): string {
     return `<td class="repo-toggle-cell">
-        <img ${REPO_ID_ATTR}="${repo.url}" ${REPO_ENABLED_ATTR}="${repo.enabled}" class="${REPO_TOGGLE_CLASS} btn"
-            src="${getStatusToggleIconSrc(repo.enabled)}" onclick="onToggleRepo(this)"/>
+        <input type="image" alt="${getStatusToggleAlt(repo.enabled)}" ${REPO_ID_ATTR}="${repo.url}" ${REPO_ENABLED_ATTR}="${repo.enabled}"
+            class="${REPO_TOGGLE_CLASS} btn" src="${getStatusToggleIconSrc(repo.enabled)}" onclick="onToggleRepo(this)"/>
     </td>`;
 }
 
-function getStatusToggleIconSrc(enabled: boolean): string {
-    return WebviewUtil.getIcon(enabled ? Resources.Icons.ToggleOnThin : Resources.Icons.ToggleOffThin);
+function getStatusToggleAlt(enabled: boolean): string {
+    return enabled ? `Disable source` : `Enable source`;
+}
+
+function getStatusToggleIconSrc(enabled: boolean, escapeBackslash: boolean = false): string {
+    let toggleIcon = WebviewUtil.getIcon(enabled ? Resources.Icons.ToggleOnThin : Resources.Icons.ToggleOffThin);
+    if (escapeBackslash) {
+        // The src that gets pulled directly into the frontend JS (for when the button is toggled) requires an extra escape on Windows
+        // https://github.com/eclipse/codewind/issues/476
+        toggleIcon = toggleIcon.replace(/\\/g, "\\\\");
+    }
+    return toggleIcon;
 }
 
 function getDeleteBtnTD(repo: ITemplateRepo): string {
@@ -194,8 +206,8 @@ function getDeleteBtnTD(repo: ITemplateRepo): string {
         onClick = "";
     }
 
-    const deleteBtn = `<img ${REPO_ID_ATTR}="${repo.url}" alt="Delete" title="${title}" onclick="${onClick}" class="${deleteBtnClass}"
-        src="${WebviewUtil.getIcon(Resources.Icons.Trash)}"/>`;
+    const deleteBtn = `<input type="image" ${REPO_ID_ATTR}="${repo.url}" alt="Delete ${repo.description}" title="${title}"
+        onclick="${onClick}" class="${deleteBtnClass}" src="${WebviewUtil.getIcon(Resources.Icons.Trash)}"/>`;
 
     return `
     <td class="delete-btn-cell">

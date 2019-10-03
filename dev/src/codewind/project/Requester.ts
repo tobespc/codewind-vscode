@@ -20,7 +20,7 @@ import Translator from "../../constants/strings/translator";
 import MCUtil from "../../MCUtil";
 import EndpointUtil, { ProjectEndpoints, Endpoint, MCEndpoints } from "../../constants/Endpoints";
 import { ILogResponse } from "../connection/SocketEvents";
-import { IMCTemplateData } from "../connection/UserProjectCreator";
+import { ICWTemplateData } from "../connection/UserProjectCreator";
 import Connection from "../connection/Connection";
 import { ITemplateRepo, IRepoEnablement } from "../../command/connection/ManageTemplateReposCmd";
 
@@ -70,8 +70,11 @@ namespace Requester {
 
     ///// Connection-specific requests
 
-    export async function getTemplates(connection: Connection): Promise<IMCTemplateData[]> {
+    export async function getTemplates(connection: Connection): Promise<ICWTemplateData[]> {
         const result = await doConnectionRequest(connection, MCEndpoints.TEMPLATES, Requester.get, { qs: { showEnabledOnly: true }});
+        if (result == null) {
+            return [];
+        }
         return result;
     }
 
@@ -149,7 +152,7 @@ namespace Requester {
         };
 
         const restartMsg = Translator.t(STRING_NS, "restartIntoMode", { startMode: ProjectCapabilities.getUserFriendlyStartMode(startMode) });
-        return doProjectRequest(project, ProjectEndpoints.RESTART_ACTION, body, Requester.get, restartMsg);
+        return doProjectRequest(project, ProjectEndpoints.RESTART_ACTION, body, Requester.post, restartMsg, false, true);
     }
 
     export async function requestBuild(project: Project): Promise<void> {
@@ -278,7 +281,7 @@ namespace Requester {
      */
     async function doProjectRequest(
             project: Project, endpoint: Endpoint, body: {},
-            requestFunc: RequestFunc, userOperationName: string, silent: boolean = false): Promise<any> {
+            requestFunc: RequestFunc, userOperationName: string, silent: boolean = false, returnFullRes: boolean = false): Promise<any> {
 
         let url: string;
         if (EndpointUtil.isProjectEndpoint(endpoint)) {
@@ -290,8 +293,13 @@ namespace Requester {
 
         Log.i(`Doing ${userOperationName} request to ${url}`);
 
+        const options: request.RequestPromiseOptions = {
+            body,
+            resolveWithFullResponse: returnFullRes,
+        };
+
         try {
-            const result = await requestFunc(url, { body });
+            const result = await requestFunc(url, options);
 
             if (!silent) {
                 vscode.window.showInformationMessage(

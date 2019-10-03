@@ -11,7 +11,7 @@ fi
 
 echo "Downloading latest Codewind CLI built from $cli_branch"
 
-cli_basename="codewind-installer"
+cli_basename="cwctl"
 
 download () {
     local url=$1
@@ -32,16 +32,16 @@ extract_property () {
 # Test the linux cli's sha vs the build_info linux cli's sha
 # Return 1 for no upgrade, 0 for upgrade available
 is_cli_upgrade_available () {
-    local cli_props_file="cli.properties";
+    local cli_props_file="cli_version.properties";
     local cli_props_url="$download_dir_url/build_info.properties"
     download $cli_props_url $cli_props_file
     cli_lastbuild=$(extract_property $cli_props_file build_info.url)
     echo "Latest cli $cli_branch build is $cli_lastbuild"
 
-    latest_sha=$(extract_property $cli_props_file build_info.linux.SHA-1)
-    rm $cli_props_file
+    latest_sha=$(extract_property $cli_props_file build_info.macos.SHA-1)
+    #rm $cli_props_file
 
-    local test_file="linux/$cli_basename"
+    local test_file="darwin/$cli_basename"
     if [[ ! -f $test_file ]]; then
         return 0;
     fi
@@ -93,7 +93,5 @@ for platform in ${platforms[*]}; do
     mkdir -p $platform
     get_cli $platform
 done
-
-echo "$cli_lastbuild" > cli_build.txt;
 
 echo "Successfully pulled Codewind CLI"

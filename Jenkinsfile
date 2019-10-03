@@ -26,6 +26,7 @@ spec:
     options {
         timestamps()
         skipStagesAfterUnstable()
+        timeout(time: 2, unit: 'HOURS')
     }
 
     environment {

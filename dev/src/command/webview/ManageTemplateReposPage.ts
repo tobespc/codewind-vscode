@@ -59,10 +59,10 @@ export default function getManageReposPage(repos: ITemplateRepo[]): string {
                 Enable All<img alt="Enable All" src="${WebviewUtil.getIcon(Resources.Icons.Play)}"/>
             </div-->
             <div id="toolbar-right-buttons">
-                <div tabindex="0" class="btn toolbar-btn" onclick="sendMsg('${ManageReposWVMessages.REFRESH}')">
+                <div tabindex="0" class="btn toolbar-btn btn-background" onclick="sendMsg('${ManageReposWVMessages.REFRESH}')">
                     Refresh<img alt="Refresh" src="${WebviewUtil.getIcon(Resources.Icons.Refresh)}"/>
                 </div>
-                <div tabindex="0" id="add-repo-btn" class="toolbar-btn btn btn-w-background" onclick="sendMsg('${ManageReposWVMessages.ADD_NEW}')">
+                <div tabindex="0" id="add-repo-btn" class="toolbar-btn btn btn-prominent" onclick="sendMsg('${ManageReposWVMessages.ADD_NEW}')">
                     Add New<img alt="Add New" src="${WebviewUtil.getIcon(Resources.Icons.New)}"/>
                 </div>
             </div>
@@ -163,12 +163,13 @@ function buildTemplateTable(repos: ITemplateRepo[]): string {
 }
 
 function buildRepoRow(repo: ITemplateRepo): string {
-    const repoName = repo.name ? repo.name : "No name available";
+    const repoName = repo.name || "No name available";
+    const repoDescr = repo.description || "No description available";
     return `
     <tr>
         <td class="name-cell"><a href="${repo.url}">${repoName}</a></td>
         <td class="style-cell">${repo.projectStyles.join(", ")}</td-->
-        <td class="descr-cell">${repo.description}</td>
+        <td class="descr-cell">${repoDescr}</td>
         ${getStatusToggleTD(repo)}
         ${getDeleteBtnTD(repo)}
     </tr>

@@ -20,6 +20,7 @@ import Translator from "../constants/strings/translator";
 import { CodewindTreeItem } from "./CodewindTree";
 import Commands from "../constants/Commands";
 import Project from "../codewind/project/Project";
+import { ConnectionStates } from "../codewind/connection/ConnectionState";
 
 const STRING_NS = StringNamespaces.TREEVIEW;
 
@@ -77,49 +78,55 @@ namespace TreeItemFactory {
 
         return {
             label,
-            collapsibleState: vscode.TreeItemCollapsibleState.Expanded,
-            tooltip: `${connection.url}`,
+            // change ID so it refreshes the collapsiblestate
+            id: `${connection.label}.${connection.state.hasChildrenInTree ? "connected" : "disconnected"}`,
+            collapsibleState: connection.state.hasChildrenInTree ? vscode.TreeItemCollapsibleState.Expanded : vscode.TreeItemCollapsibleState.None,
+            tooltip: `${connection.enabled ? "" : "[Disabled] "}${connection.url}`,
             contextValue: TreeItemContext.getConnectionContext(connection),
             iconPath,
         };
     }
 
     export function getConnectionChildren(connection: Connection): CodewindTreeItem[] {
-        if (connection.isConnected) {
+        if (connection.state === ConnectionStates.AUTH_ERROR) {
+            return [{
+                label: "Authentication error",
+                iconPath: Resources.getIconPaths(Resources.Icons.ServerError),
+                tooltip: "Click here to open the Connection Overview",
+                collapsibleState: vscode.TreeItemCollapsibleState.None,
+                command: {
+                    command: Commands.CONNECTION_OVERVIEW,
+                    title: "",
+                    arguments: [connection]
+                }
+            }];
+        }
+        else if (connection.state === ConnectionStates.NETWORK_ERROR) {
+            return [{
+                label: Translator.t(STRING_NS, "disconnectedConnectionLabel"),
+                iconPath: Resources.getIconPaths(Resources.Icons.ServerError),
+                collapsibleState: vscode.TreeItemCollapsibleState.None,
+            }];
+        }
+        else if (connection.isConnected) {
             if (connection.projects.length > 0) {
                 return connection.projects.sort((a, b) => a.name.localeCompare(b.name));
             }
-            return [ getNoProjectsTI(connection) ];
+            return [{
+                label: "No projects (Click here to create a project)",
+                iconPath: Resources.getIconPaths(Resources.Icons.Error),
+                tooltip: "Click here to create a project",
+                collapsibleState: vscode.TreeItemCollapsibleState.None,
+                command: {
+                    command: Commands.CREATE_PROJECT,
+                    title: "",
+                    arguments: [connection]
+                }
+            }];
         }
 
-        return [ getDisconnectedConnectionTI() ];
-    }
-
-    export function getNoProjectsTI(connection: Connection): vscode.TreeItem {
-        const label = "No projects (Click here to create a project)";
-        const tooltip = "Click here to create a project";
-
-        return {
-            label,
-            iconPath: Resources.getIconPaths(Resources.Icons.Error),
-            tooltip,
-            contextValue: TreeItemContext.getNoProjectsContext(),
-            collapsibleState: vscode.TreeItemCollapsibleState.None,
-            command: {
-                command: Commands.CREATE_PROJECT,
-                title: "",
-                arguments: [connection]
-            }
-        };
-    }
-
-    export function getDisconnectedConnectionTI(): vscode.TreeItem {
-        return {
-            label: Translator.t(STRING_NS, "disconnectedConnectionLabel"),
-            iconPath: Resources.getIconPaths(Resources.Icons.Disconnected),
-            contextValue: "nothing",        // anything truthy works
-            collapsibleState: vscode.TreeItemCollapsibleState.None,
-        };
+        // it is disabled
+        return [];
     }
 
     export function getProjectTI(project: Project): vscode.TreeItem {

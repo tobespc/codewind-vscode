@@ -2,7 +2,7 @@
     "name": "codewind",
     "displayName": "%displayName%",
     "description": "%description%",
-    "version": "0.5.0",
+    "version": "0.6.0",
     "publisher": "IBM",
     "engines": {
         "vscode": "^1.28.0"
@@ -85,11 +85,6 @@
                 }
             },
             {
-                "command": "%cmdID_removeConnection%",
-                "title": "%cmdTitle_removeConnection%",
-                "category": "%commandCategory%"
-            },
-            {
                 "command": "%cmdID_startCodewind%",
                 "title": "%cmdTitle_startCodewind%",
                 "category": "%commandCategory%",
@@ -138,6 +133,21 @@
                     "light": "res/img/light/refresh.svg",
                     "dark": "res/img/dark/refresh.svg"
                 }
+            },
+            {
+                "command": "%cmdID_enableConnection%",
+                "title": "%cmdTitle_enableConnection%",
+                "category": "%commandCategory%"
+            },
+            {
+                "command": "%cmdID_disableConnection%",
+                "title": "%cmdTitle_disableConnection%",
+                "category": "%commandCategory%"
+            },
+            {
+                "command": "%cmdID_removeConnection%",
+                "title": "%cmdTitle_removeConnection%",
+                "category": "%commandCategory%"
             },
             {
                 "command": "%cmdID_newProject%",
@@ -320,14 +330,6 @@
                 {
                     "command": "%cmdID_newConnection%",
                     "group": "navigation@0"
-                },
-                {
-                    "command": "%cmdID_newProject%",
-                    "group": "navigation@1"
-                },
-                {
-                    "command": "%cmdID_bindProject%",
-                    "group": "navigation@2"
                 }
             ],
             "view/item/context": [
@@ -367,9 +369,54 @@
                     "group": "ext.cw.cwstatus.b@0"
                 },
                 {
+                    "command": "%cmdID_enableConnection%",
+                    "when": "%isDisabledRemoteConnection%",
+                    "group": "ext.cw.conn.a@0"
+                },
+                {
+                    "command": "%cmdID_disableConnection%",
+                    "when": "%isEnabledRemoteConnection%",
+                    "group": "ext.cw.conn.a@0"
+                },
+                {
+                    "command": "%cmdID_newProject%",
+                    "when": "%isConnectedConnection%",
+                    "group": "ext.cw.conn.b@0"
+                },
+                {
+                    "command": "%cmdID_newProject%",
+                    "when": "%isConnectedConnection%",
+                    "group": "inline@0"
+                },
+                {
+                    "command": "%cmdID_bindProject%",
+                    "when": "%isConnectedConnection%",
+                    "group": "ext.cw.conn.b@1"
+                },
+                {
+                    "command": "%cmdID_bindProject%",
+                    "when": "%isConnectedConnection%",
+                    "group": "inline@1"
+                },
+                {
+                    "command": "%cmdID_manageTemplateRepos%",
+                    "when": "%isConnectedConnection%",
+                    "group": "ext.cw.conn.c@0"
+                },
+                {
+                    "command": "%cmdID_setRegistry%",
+                    "when": "%isConnectedConnection%",
+                    "group": "ext.cw.conn.c@1"
+                },
+                {
+                    "command": "%cmdID_openTekton%",
+                    "when": "%isConnectedRemoteConnection%",
+                    "group": "ext.cw.conn.c@2"
+                },
+                {
                     "command": "%cmdID_connectionOverview%",
                     "when": "%isRemoteConnection%",
-                    "group": "ext.cw.conn.a@0"
+                    "group": "ext.cw.conn.d@0"
                 },
                 {
                     "command": "%cmdID_connectionOverview%",
@@ -377,49 +424,14 @@
                     "group": "inline@3"
                 },
                 {
-                    "command": "%cmdID_newProject%",
-                    "when": "%isActiveConnection%",
-                    "group": "ext.cw.conn.b@0"
-                },
-                {
-                    "command": "%cmdID_newProject%",
-                    "when": "%isActiveConnection%",
-                    "group": "inline@0"
-                },
-                {
-                    "command": "%cmdID_bindProject%",
-                    "when": "%isActiveConnection%",
-                    "group": "ext.cw.conn.b@1"
-                },
-                {
-                    "command": "%cmdID_bindProject%",
-                    "when": "%isActiveConnection%",
-                    "group": "inline@1"
-                },
-                {
-                    "command": "%cmdID_manageTemplateRepos%",
-                    "when": "%isActiveConnection%",
-                    "group": "ext.cw.conn.c@0"
-                },
-                {
-                    "command": "%cmdID_setRegistry%",
-                    "when": "%isActiveConnection%",
-                    "group": "ext.cw.conn.c@1"
-                },
-                {
-                    "command": "%cmdID_openTekton%",
-                    "when": "%isActiveRemoteConnection%",
-                    "group": "ext.cw.conn.c@2"
-                },
-                {
                     "command": "%cmdID_refreshConnection%",
                     "when": "%isConnection%",
-                    "group": "ext.cw.conn.d@0"
+                    "group": "ext.cw.conn.e@0"
                 },
                 {
                     "command": "%cmdID_removeConnection%",
                     "when": "%isRemoteConnection%",
-                    "group": "ext.cw.conn.e@0"
+                    "group": "ext.cw.conn.f@0"
                 },
                 {
                     "command": "%cmdID_openInBrowser%",

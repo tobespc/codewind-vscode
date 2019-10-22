@@ -31,8 +31,11 @@ enum TreeItemContextValues {
     LOCAL_CW_STARTED = "local.started",
 
     // Connection
-    CONN_CONNECTED = "connection.connected",
-    CONN_DISCONNECTED = "connection.disconnected",
+    CONN_BASE = "connection",
+    CONN_CONNECTED = "connected",
+    // CONN_ERRORED = "errored",
+    REMOTECONN_ENABLED = "remote.enabled",
+    REMOTECONN_DISABLED = "remote.disabled",
 
     // Project
     PROJ_BASE = "project",
@@ -67,23 +70,27 @@ namespace TreeItemContext {
     }
 
     function getConnectionContextInner(connection: Connection): string[] {
-        let contextValue: TreeItemContextValues;
+        const contextValues: TreeItemContextValues[] = [ TreeItemContextValues.CONN_BASE ];
+
+        if (connection.isRemote) {
+            if (connection.enabled) {
+                contextValues.push(TreeItemContextValues.REMOTECONN_ENABLED);
+            }
+            else {
+                contextValues.push(TreeItemContextValues.REMOTECONN_DISABLED);
+            }
+        }
         if (connection.isConnected) {
-            contextValue = TreeItemContextValues.CONN_CONNECTED;
+            contextValues.push(TreeItemContextValues.CONN_CONNECTED);
         }
-        else {
-            contextValue = TreeItemContextValues.CONN_DISCONNECTED;
-        }
-        return [ contextValue ];
+
+        return contextValues;
     }
 
     export function getConnectionContext(connection: Connection): string {
-        return buildContextValue(getConnectionContextInner(connection));
+        const cv = buildContextValue(getConnectionContextInner(connection));
         // Log.d(`The context value for ${connection} is ${cv}`);
-    }
-
-    export function getNoProjectsContext(): string {
-        return buildContextValue([TreeItemContextValues.NO_PROJECTS]);
+        return cv;
     }
 
     export function getProjectContext(project: Project): string {

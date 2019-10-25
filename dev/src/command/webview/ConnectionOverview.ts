@@ -39,7 +39,11 @@ export enum ConnectionOverviewWVMessages {
  * The editable textfields in the Connection (left half) part of the overview
  */
 interface IConnectionInfoFields {
+<<<<<<< HEAD
     readonly ingressHost: string;
+=======
+    readonly ingressUrl: string;
+>>>>>>> eb1fa8adc120353f733e47c3f93afd7bdcabf149
     readonly username?: string;
     readonly password?: string;
 }
@@ -128,7 +132,11 @@ export default class ConnectionOverview {
                     const newInfo: IConnectionInfoFields = msg.data;
                     if (this.connection) {
                         vscode.window.showInformationMessage(`Updating info for ${this.connection.label} to ${JSON.stringify(newInfo)}`);
+<<<<<<< HEAD
                         if (newInfo.ingressHost !== this.connection.getRemoteInfo().ingressHost) {
+=======
+                        if (newInfo.ingressUrl !== this.connection.getRemoteInfo().ingressUrl) {
+>>>>>>> eb1fa8adc120353f733e47c3f93afd7bdcabf149
                             vscode.window.showWarningMessage("Changing ingress is not implemented, yet");
                         }
                         this.connection.username = newInfo.username;
@@ -140,7 +148,11 @@ export default class ConnectionOverview {
                             const newConnection = await this.createNewConnection(newInfo);
                             this.connection = newConnection;
                             this.connection.onOverviewOpened(this);
+<<<<<<< HEAD
                             vscode.window.showInformationMessage(`Successfully created new connection "${this.label}" to ${newInfo.ingressHost}`);
+=======
+                            vscode.window.showInformationMessage(`Successfully created new connection "${this.label}" to ${newInfo.ingressUrl}`);
+>>>>>>> eb1fa8adc120353f733e47c3f93afd7bdcabf149
                             this.refresh(this.connection.getRemoteInfo());
                         }
                         catch (err) {
@@ -191,6 +203,7 @@ export default class ConnectionOverview {
      * Returns the new Connection if it succeeds. Returns undefined if user cancels. Throws errors.
      */
     private async createNewConnection(info: IConnectionInfoFields): Promise<RemoteConnection> {
+<<<<<<< HEAD
         // TODO change to https
         const withProtocol = `http://${info.ingressHost}`;
         try {
@@ -202,6 +215,21 @@ export default class ConnectionOverview {
         }
 
         const ingressUrl = vscode.Uri.parse(withProtocol);
+=======
+        let testIngressUrl;
+        try {
+            testIngressUrl = new URL(info.ingressUrl);
+        }
+        catch (err) {
+            throw new Error(`"${info.ingressUrl}" is not a valid URL.`);
+        }
+
+        if (!testIngressUrl.protocol.startsWith("http")) {
+            throw new Error(`"${info.ingressUrl}" must be a an HTTP or HTTPS URL`);
+        }
+
+        const ingressUrl = vscode.Uri.parse(info.ingressUrl);
+>>>>>>> eb1fa8adc120353f733e47c3f93afd7bdcabf149
 
         await vscode.window.withProgress(({
             cancellable: true,

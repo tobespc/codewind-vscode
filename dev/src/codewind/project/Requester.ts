@@ -78,11 +78,19 @@ namespace Requester {
             url = url.toString();
         }
         try {
+<<<<<<< HEAD
             await request.get(url, { resolveWithFullResponse: true, timeout: 10000 });
+=======
+            await get(url, { resolveWithFullResponse: true, timeout: 10000 });
+>>>>>>> eb1fa8adc120353f733e47c3f93afd7bdcabf149
             // It succeeded
             return true;
         }
         catch (err) {
+<<<<<<< HEAD
+=======
+            Log.e(`Error pinging ${url}`, err);
+>>>>>>> eb1fa8adc120353f733e47c3f93afd7bdcabf149
             if (err instanceof StatusCodeError) {
                 // it was reachable, but returned a bad status
                 return true;
@@ -286,11 +294,9 @@ namespace Requester {
             action: newAutoBuildAction
         };
 
-        const response = await doProjectRequest(project, ProjectEndpoints.BUILD_ACTION, body, Requester.post, newAutoBuildUserStr);
-        if (MCUtil.isGoodStatusCode(response.statusCode)) {
-            Log.d("Received good status from autoBuild request, new auto build is: " + newAutoBuild);
-            project.setAutoBuild(newAutoBuild);
-        }
+        // const response = await doProjectRequest(project, ProjectEndpoints.BUILD_ACTION, body, Requester.post, newAutoBuildUserStr);
+        await doProjectRequest(project, ProjectEndpoints.BUILD_ACTION, body, Requester.post, newAutoBuildUserStr);
+        project.setAutoBuild(newAutoBuild);
     }
 
     export async function requestToggleEnablement(project: Project): Promise<void> {

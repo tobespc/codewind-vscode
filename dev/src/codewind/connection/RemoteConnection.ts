@@ -20,7 +20,11 @@ import { ConnectionStates } from "./ConnectionState";
  */
 export interface IRemoteCodewindInfo {
     readonly label: string;
+<<<<<<< HEAD
     readonly ingressHost?: string;
+=======
+    readonly ingressUrl?: string;
+>>>>>>> eb1fa8adc120353f733e47c3f93afd7bdcabf149
     readonly username?: string;
     readonly registryUrl?: string;
     readonly registryUsername?: string;
@@ -32,8 +36,11 @@ export interface IRemoteCodewindInfo {
  */
 export default class RemoteConnection extends Connection {
 
+<<<<<<< HEAD
     public static readonly REMOTE_CODEWIND_PROTOCOL: string = "http";
 
+=======
+>>>>>>> eb1fa8adc120353f733e47c3f93afd7bdcabf149
     private _activeOverviewPage: ConnectionOverview | undefined;
 
     constructor(
@@ -89,7 +96,11 @@ export default class RemoteConnection extends Connection {
             label: this.label,
             registryUrl: this.registryUrl,
             registryUsername: this.registryUsername,
+<<<<<<< HEAD
             ingressHost: this.url.authority,
+=======
+            ingressUrl: this.url.authority,
+>>>>>>> eb1fa8adc120353f733e47c3f93afd7bdcabf149
             username: this.username,
         };
     }
